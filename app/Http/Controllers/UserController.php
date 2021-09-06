@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -14,7 +15,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        $user =  User::all();
+        return view('users.index', compact('user'));
     }
 
     /**
@@ -24,7 +26,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        return view('users.create');
     }
 
     /**
@@ -35,7 +37,22 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $user = new User;
+        $user->name = $request->name;
+        $user->prenom = $request->prenom;
+        $user->age = $request->age;
+        $user->email = $request->email;
+        $user->password = $request->password;
+        $user->dateNaissance = $request->dateNaissance;
+        $user->photoProfil = $request->file("url")->hashName();
+
+
+        $user->save();
+
+        $request->file("url")->storePublicly("img", "public");
+
+        return redirect()->route('users.index');
+
     }
 
     /**
@@ -46,7 +63,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        //
+        return view('users.index');
     }
 
     /**
@@ -57,7 +74,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        //
+        return view('users.edit');
     }
 
     /**
@@ -69,7 +86,18 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+        Storage::disk("public")->delete("img/".$user->photoProfil);
+        $user->name = $request->name;
+        $user->prenom = $request->prenom;
+        $user->age = $request->age;
+        $user->email = $request->email;
+        $user->password = $request->password;
+        $user->dateNaissance = $request->dateNaissance;
+        $user->photoProfil = $request->file("url")->hashName();
+
+        $user->save();
+
+        return redirect()->route('users.index');
     }
 
     /**
@@ -80,6 +108,8 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        Storage::disk("public")->delete("/img".$user->photoProfil);
+        $user->delete();
+        return redirect()->route("users.index");
     }
 }
